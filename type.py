@@ -3,6 +3,7 @@
 import wx
 
 
+
 class QuestionPanel(wx.Panel):
   def __init__(self, parent, id):
     wx.Panel.__init__(self, parent, id, size=wx.Size(180, 80))
@@ -40,6 +41,14 @@ class NanaWin(wx.Frame):
     vbox.Add(self.TypePanel, flag=wx.EXPAND)
     
     panel.SetSizer(vbox)
+
+    #menu
+    settingMenu = wx.Menu()
+    self.isUpper = settingMenu.AppendCheckItem(1, u'大文字で表示')
+    self.isUpper.Check()
+    menuBar = wx.MenuBar()
+    menuBar.Append(settingMenu, u'設定')
+    self.SetMenuBar(menuBar)
     
     #question & input initialize
     self.goNext()
@@ -47,12 +56,20 @@ class NanaWin(wx.Frame):
     #validate input
     self.TypePanel.text.Bind(wx.EVT_CHAR, self.onTyped)
     
+    
     #centering & show
     self.Centre()
     self.Show(True)
     
   def onTyped(self, event):
-    event.Skip()
+    keyCode = event.GetKeyCode()
+    if keyCode == wx.WXK_BACK or keyCode == wx.WXK_DELETE:
+      event.Skip()
+      return True
+    char = chr(keyCode)
+    if self.isUpper.IsChecked():
+      char = char.upper()
+    self.TypePanel.text.WriteText(char)
     input = self.TypePanel.text.GetValue()
     test = self.QuestionPanel.text.GetValue()
     if input == test:
@@ -67,7 +84,10 @@ class NanaWin(wx.Frame):
     self.TypePanel.text.SetValue('')
     self.TypePanel.text.SetBackgroundColour('White')
     try:
-      self.QuestionPanel.text.SetValue(self.questions[self.questionCursor])
+      next = self.questions[self.questionCursor]
+      if self.isUpper.IsChecked():
+        next = next.upper()
+      self.QuestionPanel.text.SetValue(next)
       self.questionCursor += 1
     except IndexError:
       self.goFinish()
